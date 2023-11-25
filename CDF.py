@@ -148,30 +148,43 @@ def substitute(expression, X):
 print("\n\n~~CDF Calculator~~\n\n\n")
 start = int(input('X-start = '))
 end = int(input('X-end = '))
-function = input('f(x) = ')
+choice = input('Provide:\nf: a function f(x)\nv: values for f(x)\n> ')
 
-if not is_balanced(function):
-	raise ValueError('Expressions\'s parentheses are unbalanced.')
+if choice.lower() == 'f':
+	function = input('f(x) = ')
 
-if not is_legal(function):
-	raise ValueError('Unsupported operations, functions, or expression.')
+	if not is_balanced(function):
+		raise ValueError('Expressions\'s parentheses are unbalanced.')
 
-X = [str(_) for _ in range(start, end + 1)]
-function = parse(tokenizer(function))
+	if not is_legal(function):
+		raise ValueError('Unsupported operations, functions, or expression.')
 
-Y = [eval(substitute(function, x)) for x in X]
+	X = [str(_) for _ in range(start, end + 1)]
+	function = parse(tokenizer(function))
+
+	Y = [eval(substitute(function, x)) for x in X]
+
+elif choice.lower() == 'v':
+	X = [str(_) for _ in range(start, end + 1)]
+	Y = []
+	for x in X:
+		y = eval(input('f({}) = '.format(x)))
+		Y.append(y)
+
+else:
+	raise ValueError('Invalid choice. Please enter either f or v.')
 
 cumulative_Y = [sum(Y[:i+1]) for i in range(len(Y))]
 if cumulative_Y[-1] != 1:
 	raise ValueError('Cumulative sum of X in f(x) does not add up to 1.')
 
-print('\nCDF of f(x) = {} at X = {}:'.format(function, X))
-print('      / 0,    x < {}'.format(X[0]))
+print('\nCDF of f(x) = {}\nat X = {}:'.format(function if choice.lower() == 'f' else Y, X))
+print('      / 0;    x < {}'.format(X[0]))
 for i in range(len(X[:-1])):
 	x = X[i]
-	if i == len(cumulative_Y) // 2:
-		print('F(x)= | {:.2f}, {} <= x < {}'.format(cumulative_Y[i], x, X[i+1]))
+	if i == (len(cumulative_Y) // 2) - 1:
+		print('F(x)= | {:.2f}; {} <= x < {}'.format(cumulative_Y[i], x, X[i+1]))
 	else:
-		print('      | {:.2f}, {} <= x < {}'.format(cumulative_Y[i], x, X[i+1]))
+		print('      | {:.2f}; {} <= x < {}'.format(cumulative_Y[i], x, X[i+1]))
 
-print('      \\ 1,    x >= {}'.format(X[-1]))
+print('      \\ 1;    x >= {}'.format(X[-1]))
