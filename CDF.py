@@ -138,6 +138,9 @@ def parse(tokens):
 				else:
 					raise ValueError('Invalid/Unknown function.')
 		
+		elif token == 'other':
+			raise ValueError('Unrecognised character/function "{}".'.format(char))
+		
 	return expression
 
 
@@ -146,9 +149,26 @@ def substitute(expression, X):
 
 
 print("\n\n~~CDF Calculator~~\n\n\n")
-start = int(input('X-start = '))
-end = int(input('X-end = '))
-choice = input('Provide:\nf: a function f(x)\nv: values for f(x)\n> ')
+choice = input('Provide:\ns: start and end of X\nv: values of X\n> ')
+X = [] # To suppress type-check warnings
+
+if choice.lower() == 's':
+	start = int(input('X-start = '))
+	end = int(input('X-end = '))
+	X = [str(_) for _ in range(start, end + 1)]
+
+elif choice.lower() == 'v':
+	N = int(input('N(X) = '))
+	X = []
+	for i in range(1, N + 1):
+		x = str(eval(input('X{} = '.format(i))))
+		X.append(x)
+
+else:
+	raise ValueError('Invalid choice. Please enter either s or v.')
+
+
+choice = input('Provide:\nf: a function f(x)\nv: values of f(x)\n> ')
 
 if choice.lower() == 'f':
 	function = input('f(x) = ')
@@ -159,13 +179,11 @@ if choice.lower() == 'f':
 	if not is_legal(function):
 		raise ValueError('Unsupported operations, functions, or expression.')
 
-	X = [str(_) for _ in range(start, end + 1)]
 	function = parse(tokenizer(function))
 
 	Y = [eval(substitute(function, x)) for x in X]
 
 elif choice.lower() == 'v':
-	X = [str(_) for _ in range(start, end + 1)]
 	Y = []
 	for x in X:
 		y = eval(input('f({}) = '.format(x)))
