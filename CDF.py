@@ -148,7 +148,7 @@ def substitute(expression, X):
 	return expression.replace('X', X)
 
 
-print("\n\n~~CDF Calculator~~\n\n\n")
+print("~~CDF Calculator~~\n\n")
 choice = input('Provide:\ns: start and end of X\nv: values of X\n> ')
 X = [] # To suppress type-check warnings
 
@@ -168,7 +168,7 @@ else:
 	raise ValueError('Invalid choice. Please enter either s or v.')
 
 
-choice = input('Provide:\nf: a function f(x)\nv: values of f(x)\n> ')
+choice = input('\n\n\nProvide:\nf: a function f(x)\nv: values of f(x)\n> ')
 
 if choice.lower() == 'f':
 	function = input('f(x) = ')
