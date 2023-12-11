@@ -20,7 +20,7 @@ d = b**2 - 4*a*c
 
 # Calculate the two solutions
 if d > 0:
-# If the discriminant is positive, the solutions are real and different
+	# If the discriminant is positive, the solutions are real and different
 	sol1 = (-b - sqrt(d)) / (2*a)
 	sol2 = (-b + sqrt(d)) / (2*a)
 	if decimal_point_amount(sol1) > 5:
