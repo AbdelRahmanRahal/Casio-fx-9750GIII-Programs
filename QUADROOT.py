@@ -3,7 +3,7 @@ from math import sqrt, pi, sin, cos, tan, sinh, cosh, tanh
 π = pi
 
 def decimal_point_amount(n):
-	return len(str(n).partition('.')[-1])
+	return len(str(n).split('.')[-1])
 
 print("\n~~Quadratic Solver~~")
 print("Enter your terms in")
@@ -24,11 +24,13 @@ if d > 0:
 	sol1 = (-b - sqrt(d)) / (2*a)
 	sol2 = (-b + sqrt(d)) / (2*a)
 	if decimal_point_amount(sol1) > 5:
-		print('\nX = ({} +/- {}) / {}'.format(
-			-b,
-			"sqrt({})".format(d) if decimal_point_amount(sqrt(d)) > 5 else sqrt(d),
-			2*a
-		))
+		print(
+			'\nX = ({} +/- {}) / {}'.format(
+				-b,
+				"sqrt({})".format(d) if decimal_point_amount(sqrt(d)) > 5 else sqrt(d),
+				2*a
+			)
+		)
 		print('\nOR')
 	
 	print('\nX = {}\nX = {}'.format(sol1, sol2))
