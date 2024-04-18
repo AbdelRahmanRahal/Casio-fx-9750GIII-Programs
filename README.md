@@ -33,3 +33,6 @@ For example, for $x^2 - 6x - 16 = 0$, you will write it like the following:
 
 > [!IMPORTANT]
 > Make sure to always write $x^2$ as `x**2` and not `x^2`. You also have to specify the coefficient of all terms, even if they are 1. So, your final term should look like this `1x**2`.
+
+# K_MAP
+Port of https://github.com/AmitGZ/Karnaugh_Solver for this calculator. Will write more about it later.
