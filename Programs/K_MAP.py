@@ -1,196 +1,171 @@
-__similar_char = 'X'
-_not_symbol = '`'
-_and_symbol = ''
-_or_symbol = ' + '
-_parenthesize_variables = False
-
-
-# Iterating over all different terms and finding the ones that differ by one bit
-def _get_prime_implicants(term_arr):
-	return_arr = []
-	for term1 in term_arr:
-		for term2 in term_arr:
-			if term1 != term2:
-				similar_indexes = [idx for idx in range(len(term1)) if (term1[idx] == term2[idx])]
-				if len(term1) - len(similar_indexes) <= 1:
-					tmp = _union_implicants(term1, term2)
-					if tmp not in return_arr:
-						return_arr.append(tmp)
-	return return_arr
-
-
-# Helper function to join two implicants together
-def _union_implicants(implicant1, implicant2):
-	return_arr = []
-	for idx in range(len(implicant1)):
-		if implicant1[idx] == implicant2[idx]:
-			return_arr.append(implicant1[idx])
+def mul(x,y): # Multiply 2 minterms
+	res = []
+	for i in x:
+		if i+"`" in y or (len(i)==2 and i[0] in y):
+			return []
 		else:
-			return_arr.append(__similar_char)
-	return return_arr
+			res.append(i)
+	for i in y:
+		if i not in res:
+			res.append(i)
+	return res
 
+def multiply(x,y): # Multiply 2 expressions
+	res = []
+	for i in x:
+		for j in y:
+			tmp = mul(i,j)
+			res.append(tmp) if len(tmp) != 0 else None
+	return res
 
-# Function to check if two arrays are subsets
-def _is_subset(a, b):
-	for bit_idx in range(len(a)):
-		if a[bit_idx] != b[bit_idx] and a[bit_idx] != __similar_char:
-			return False
-	return True
+def refine(my_list,dc_list): # Removes don't care terms from a given list and returns refined list
+	res = []
+	for i in my_list:
+		if int(i) not in dc_list:
+			res.append(i)
+	return res
 
+def findEPI(x): # Function to find essential prime implicants from prime implicants chart
+	res = []
+	for i in x:
+		if len(x[i]) == 1:
+			res.append(x[i][0]) if x[i][0] not in res else None
+	return res
 
-# Function to remove all subsets,
-def _remove_subsets(term_arr):
-	new_list = []
-	for term1_idx in range(len(term_arr)):
-		if term_arr[term1_idx] not in new_list:
-			new_list.append(term_arr[term1_idx])
-	indexes_to_remove = []
-	for term1_idx in range(len(new_list)):
-		for term2_idx in range(len(new_list)):
-			if term1_idx != term2_idx and _is_subset(new_list[term1_idx], new_list[term2_idx]):
-				indexes_to_remove.append(term2_idx)
-	indexes_to_remove = list(dict.fromkeys(indexes_to_remove))
-	indexes_to_remove.sort()
-	for idx in range(len(indexes_to_remove))[::-1]:
-		del new_list[indexes_to_remove[idx]]
-	return new_list
+def findVariables(x): # Function to find variables in a meanterm.
+	var_list = []
+	for i in range(len(x)):
+		if x[i] == '0':
+			var_list.append(chr(i+65)+"`")
+		elif x[i] == '1':
+			var_list.append(chr(i+65))
+	return var_list
 
-
-# Getting the columns marked for each prime implicant's row
-def _get_cols(prime_implicant):
-	if __similar_char not in prime_implicant:
-		return [prime_implicant]
-	col = []
-	idx = prime_implicant.index(__similar_char)
-	for bit in (['0', '1']):
-		tmp = prime_implicant.copy()
-		tmp[idx] = bit
-		arr = _get_cols(tmp)
-		for k in arr:
-			col.append(k)
-	return col
-
-
-# Calculate prime Implicant chart
-def _get_chart(minterms):
-	chart = []
-	for i in range(len(minterms)):
-		chart.append(_get_cols(minterms[i]))
-	return chart
-
-
-# Helper function to get all prime implicants marked by a given chart
-def _get_minterms_from_chart(chart):
-	all_minterms = []
-	for row in chart:
-		for item in row:
-			if item not in all_minterms:
-				all_minterms.append(item)
-	return all_minterms
-
-
-def _pad_with_zeros(input_string, desired_length):
+def padWithZeros(input_string, desired_length): # Pads a string with zeros
 	while len(input_string) < desired_length:
 		input_string = '0' + input_string
 	return input_string
 
+def flatten(x): # Flattens a list
+	flattened_items = []
+	for i in x:
+		flattened_items.extend(x[i])
+	return flattened_items
 
-def _convert_to_string(minterms, var_list):
-	output = ''
-	for minterm in minterms:
-		output += '('
-		for bit_idx in range(len(minterm)):
-			if minterm[bit_idx] != __similar_char:
-				output += '(' if _parenthesize_variables else ''
-				output += var_list[bit_idx]
-				output += _not_symbol if minterm[bit_idx] == '0' else ''
-				output += ')' if _parenthesize_variables else ''
-				output += _and_symbol
-		if _and_symbol == output[-len(_and_symbol):]:
-			output = output[:-len(_and_symbol)]  # Removing last "and" symbol
-		output += ')'
-		if minterm != minterms[-1]:
-			output += _or_symbol
-	return output
+def findMinterms(a): # Function for finding out which minterms are merged.
+	gaps = a.count('-')
+	if gaps == 0:
+		return [str(int(a,2))]
+	max_value_binary_len = len(bin(pow(2, gaps) - 1)[2:])
+	x = [padWithZeros(bin(i)[2:], max_value_binary_len) for i in range(pow(2, gaps))]
 
+	temp = []
+	for i in range(pow(2,gaps)):
+		temp2,ind = a[:],-1
+		for j in x[0]:
+			if ind != -1:
+				ind = ind+temp2[ind+1:].find('-')+1
+			else:
+				ind = temp2[ind+1:].find('-')
+			temp2 = temp2[:ind]+j+temp2[ind+1:]
+		temp.append(str(int(temp2,2)))
+		x.pop(0)
+	return temp
 
-# Removing common multiples (AB || BC) => B (A || C)
-def _check_common_multiples(minterms, var_list):
-	common = [__similar_char] * len(minterms[0])
-	if len(minterms) > 1:
-		for bit in range(len(minterms[0])):
-			for term in range(1, len(minterms)):
-				if minterms[0][bit] != minterms[term][bit] or minterms[term][bit] == __similar_char:
-					break
-				elif term == len(minterms) - 1:
-					common[bit] = minterms[term][bit]
-					for k in range(len(minterms)):
-						minterms[k][bit] = __similar_char
-	common = _convert_to_string([common], var_list)
-	return common
+def compare(a,b): # Function for checking if 2 minterms differ by 1 bit only
+	c = 0
+	for i in range(len(a)):
+		if a[i] != b[i]:
+			mismatch_index = i
+			c += 1
+			if c>1:
+				return (False,None)
+	return (True,mismatch_index)
 
+def removeTerms(_chart,terms): # Removes minterms which are already covered from chart
+	for i in terms:
+		for j in findMinterms(i):
+			try:
+				del _chart[j]
+			except KeyError:
+				pass
 
-def solve(minterms, var_list=[]):
-	if len(minterms) == 0:
-		raise Exception("Insufficient minterm count")
-	var_count = len(bin(max(minterms))) - 2  # Default var count
-	if len(var_list) == 0:  # Default variable (Capital letters)
-		var_list = list(map(chr, range(65, 65 + var_count)))
-	elif len(var_list) >= var_count:  # Predefined variables array
-		var_count = len(var_list)
-	else:
-		raise Exception("Insufficient variable count")
-
-	# Setting the minterms array to binary form
-	for i in range(len(minterms)):
-		minterms[i] = list(_pad_with_zeros(bin(int(minterms[i]))[2:], var_count))
-
-	# Iterating to get all prime implicants
-	prime_implicants = _get_prime_implicants(minterms)
-	while len(prime_implicants) != 0:
-		for prime_implicant in prime_implicants:
-			minterms.append(prime_implicant)  # Appending the merged squares to terms
-		prime_implicants = _get_prime_implicants(prime_implicants)  # Iterating again until no more squares found
-
-	# Removing all Subsets
-	minterms = _remove_subsets(minterms)
-
-	# Calculating chart and all its minterms
-	chart = _get_chart(minterms)
-	all_minterms = sorted(_get_minterms_from_chart(chart))
-
-	# Calculating all redundant rows by removing one each time
-	redundant_indexes = []
-	for i in range(len(chart)):
-		tmp_chart = []
-		for k in range(len(chart)):
-			if (k != i) and (k not in redundant_indexes):
-				tmp_chart.append(chart[k])
-		if sorted(_get_minterms_from_chart(tmp_chart)) == all_minterms:
-			redundant_indexes.append(i)
-
-	# Removing redundant terms
-	for idx in range(len(redundant_indexes))[::-1]:
-		del minterms[redundant_indexes[idx]]
-
-	# Removing common multiples (AB || BC) => B (A || C)
-	multiples = _check_common_multiples(minterms, var_list)
-
-	# Getting output
-	output = _convert_to_string(minterms, var_list)
-
-	# Multiplying back by common multiples
-	if multiples != '()':
-		output = multiples + _and_symbol + '(' + output + ')'
-	return output
-
-
-print('\n~~K-map Solver~~\n')
-print('Enter minterms')
+print('Enter the minterms')
 print('seperated by commas:')
+mt = input().strip().split(',')
+mt = [int(i) for i in mt]
 
-minterms = input().split(',')
-minterms = [int(num) for num in minterms]
+print("Enter don't cares (if any)")
+print("seperated by commas: ")
+dc = input()
 
-print('\nK-map solution:')
-print(solve(minterms))
+# Check if there are any don't care terms entered
+if dc:
+	dc = dc.strip().split(',')
+	dc = [int(i) for i in dc]
+else:
+	dc = []  # No don't care terms entered
+
+mt.sort()
+minterms = mt+dc
+minterms.sort()
+size = len(bin(minterms[-1]))-2
+groups,all_pi = {},set()
+
+# Primary grouping
+for minterm in minterms:
+	try:
+		groups[bin(minterm).count('1')].append(padWithZeros(bin(minterm)[2:], size))
+	except KeyError:
+		groups[bin(minterm).count('1')] = [padWithZeros(bin(minterm)[2:], size)]
+
+# Process for creating tables and finding prime implicants
+while True:
+	tmp = groups.copy()
+	groups,m,marked,should_stop = {},0,set(),True
+	l = sorted(list(tmp.keys()))
+	for i in range(len(l)-1):
+		for j in tmp[l[i]]: # Loop which iterates through current group elements
+			for k in tmp[l[i+1]]: # Loop which iterates through next group elements
+				res = compare(j,k) # Compare the minterms
+				if res[0]: # If the minterms differ by 1 bit only
+					try:
+						groups[m].append(j[:res[1]]+'-'+j[res[1]+1:]) if j[:res[1]]+'-'+j[res[1]+1:] not in groups[m] else None # type: ignore
+					except KeyError:
+						groups[m] = [j[:res[1]]+'-'+j[res[1]+1:]] # type: ignore
+					should_stop = False
+					marked.add(j) # Mark element j
+					marked.add(k) # Mark element k
+		m += 1
+	local_unmarked = set(flatten(tmp)).difference(marked) # Unmarked elements of each table
+	all_pi = all_pi.union(local_unmarked) # Adding Prime Implicants to global list
+	if should_stop: # If the minterms cannot be combined further
+		break
+
+
+# Printing and processing of Prime Implicant chart
+sz = len(str(mt[-1])) # The number of digits of the largest minterm
+chart = {}
+for i in all_pi:
+	merged_minterms,y = findMinterms(i),0
+	for j in refine(merged_minterms,dc):
+		x = mt.index(int(j))*(sz+1) # The position where we should put 'X'
+		y = x+sz
+		try:
+			chart[j].append(i) if i not in chart[j] else None # Add minterm in chart
+		except KeyError:
+			chart[j] = [i]
+
+EPI = findEPI(chart) # Finding essential prime implicants
+removeTerms(chart,EPI) # Remove EPI related columns from chart
+
+if(len(chart) == 0): # If no minterms remain after removing EPI related columns
+	final_result = [findVariables(i) for i in EPI] # Final result with only EPIs
+else: # Else follow Petrick's method for further simplification
+	P = [[findVariables(j) for j in chart[i]] for i in chart]
+	while len(P)>1: # Keep multiplying until we get the SOP form of P
+		P[1] = multiply(P[0],P[1])
+		P.pop(0)
+	final_result = [min(P[0],key=len)] # Choosing the term with minimum variables from P
+	final_result.extend(findVariables(i) for i in EPI) # Adding the EPIs to final solution
+print('\nSolution: F = '+' + '.join(''.join(i) for i in final_result))
